@@ -33,13 +33,13 @@
 * [Searching and pulling images](chapter-5-working-with-images/searching-and-pulling-images.md)
 * [Practice: Working with images](chapter-5-working-with-images/practice-working-with-images.md)
 
-## Chapter 6: Building Docker Images
+## Chapter 6: Building Container Images
 
 * [Committing a Container](chapter-6-building-docker-images/untitled.md)
 * [Practice: Container to Image](chapter-6-building-docker-images/practice-container-to-image.md)
-* [Building image using Dockerfile](chapter-6-building-docker-images/building-image-using-dockerfile.md)
-* [Practice: My First Dockerfile](chapter-6-building-docker-images/practice-my-first-dockerfile.md)
-* [Dockerfile Format Continued...](chapter-6-building-docker-images/dockerfile-format-continued....md)
+* [Building image using Containerfile](chapter-6-building-docker-images/building-image-using-dockerfile.md)
+* [Practice: My First Containerfile](chapter-6-building-docker-images/practice-my-first-dockerfile.md)
+* [Containerfile Format Continued...](chapter-6-building-docker-images/dockerfile-format-continued....md)
 * [Practice: Create a redis server image](chapter-6-building-docker-images/practice-create-a-redis-server-image.md)
 * [Multi-stage Build](chapter-6-building-docker-images/multi-stage-build.md)
 
@@ -64,11 +64,11 @@
 * [What is a Pod?](chapter-10-pods-with-podman/untitled.md)
 * [Practice: Creating a Wordpress Pod](chapter-10-pods-with-podman/practice-creating-a-wordpress-pod.md)
 * [Moving from docker-compose to Podman pods](chapter-10-pods-with-podman/moving-from-docker-compose-to-podman-pods.md)
-* [Practice: Podman Play](chapter-10-pods-with-podman/practice-podman-play.md)
+* [Practice: Podman Kube Play](chapter-10-pods-with-podman/practice-podman-play.md)
 
 ## Extras <a href="#extra-openshift" id="extra-openshift"></a>
 
+* [Get started with Podman Compose](extra-openshift/get-started-with-podman-compose.md)
 * [Get started with Docker Compose](extra-openshift/get-started-with-docker-compose.md)
-* [Get started with Podman-Compose](extra-openshift/get-started-with-podman-compose.md)
 * [Creating a Kubernetes Pod from Docker Image](extra-openshift/creating-a-pod-from-docker-image.md)
 * [Deploying a multi-pod application on OpenShift](extra-openshift/creating-a-multi-pod-application.md)

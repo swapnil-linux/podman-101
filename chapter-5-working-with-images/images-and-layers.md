@@ -1,17 +1,17 @@
 # Images and layers
 
-A Docker image is built up from a series of layers. Each layer represents an instruction in the image’s Dockerfile. Each layer is read-only. Consider the following Dockerfile:
+A container image is built up from a series of layers. Each layer represents an instruction in the image's Containerfile (Dockerfile). Each layer is read-only. Consider the following Containerfile:
 
 ```
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 COPY . /app
 RUN make /app
-CMD ["python","/app/app.py"]
+CMD ["python3","/app/app.py"]
 ```
 
-This Dockerfile contains four instructions, each of which creates a layer. The FROM statement starts out by creating a layer from the ubuntu:20.04 image. The COPY command adds some files from your Docker client’s current directory. The RUN command builds your application using the make command. Finally, the last layer specifies what command to run within the container.&#x20;
+This Containerfile contains four instructions, each of which creates a layer. The FROM statement starts out by creating a layer from the ubuntu:24.04 image. The COPY command adds some files from your current directory. The RUN command builds your application using the make command. Finally, the last layer specifies what command to run within the container.&#x20;
 
-Each layer is only a set of differences from the layer before it. The layers are stacked on top of each other. When you create a new container, you add a new writable layer on top of the underlying layers. This layer is often called the “container layer”. All changes made to the running container, such as writing new files, modifying existing files, and deleting files, are written to this thin writable container layer.
+Each layer is only a set of differences from the layer before it. The layers are stacked on top of each other. When you create a new container, you add a new writable layer on top of the underlying layers. This layer is often called the "container layer". All changes made to the running container, such as writing new files, modifying existing files, and deleting files, are written to this thin writable container layer.
 
 ### Container and layers&#x20;
 
@@ -22,19 +22,18 @@ The major difference between a container and an image is the top writable layer.
 To view the approximate size of a running container, you can use the `podman ps -s` command, you will see two different columns relate to size.
 
 ```
-[root@servera ~]# podman ps -s
+$ podman ps -s
 CONTAINER ID  IMAGE                            COMMAND          CREATED         STATUS             PORTS  NAMES              SIZE
-271fda1ba4f1  docker.io/library/alpine:latest  sh               4 seconds ago   Up 4 seconds ago          flamboyant_diffie  0B (virtual 5.57MB)
+271fda1ba4f1  docker.io/library/alpine:latest  sh               4 seconds ago   Up 4 seconds ago          flamboyant_diffie  0B (virtual 7.79MB)
 5b6cfbe91757  docker.io/library/tomcat:latest  catalina.sh run  15 seconds ago  Up 14 seconds ago         zealous_gould      37.6kB (virtual 649MB)
-[root@servera ~]# 
 
 ```
 
 **size**: the amount of data (on disk) that is used for the writable layer of each container
 
-**virtual** **size**: the amount of data used for the read-only image data used by the container. Multiple containers may share some or all read-only image data. Two containers started from the same image share 100% of the read-only data, while two containers with different images which have layers in common share those common layers. Therefore, you can’t just total the virtual sizes. This will over-estimate the total disk usage by a potentially non-trivial amount.
+**virtual** **size**: the amount of data used for the read-only image data used by the container. Multiple containers may share some or all read-only image data. Two containers started from the same image share 100% of the read-only data, while two containers with different images which have layers in common share those common layers. Therefore, you can't just total the virtual sizes. This will over-estimate the total disk usage by a potentially non-trivial amount.
 
-The total disk space used by all of the running containers on disk is some combination of each container’s size and the virtual size values. If multiple containers have exactly the same virtual size, they are likely started from the same exact image.
+The total disk space used by all of the running containers on disk is some combination of each container's size and the virtual size values. If multiple containers have exactly the same virtual size, they are likely started from the same exact image.
 
 ### The copy-on-write (CoW) strategy
 
@@ -42,43 +41,43 @@ Copy-on-write is a strategy of sharing and copying files for maximum efficiency.
 
 ### Sharing promotes smaller images
 
-When you use podman pull to pull down an image from a repository, or when you create a container from an image that does not yet exist locally, each layer is pulled down separately, and stored in the local storage area, which is usually`/var/lib/containers/storage`on Linux hosts. You can see these layers being pulled in this example:
+When you use podman pull to pull down an image from a repository, or when you create a container from an image that does not yet exist locally, each layer is pulled down separately, and stored in the local storage area, which is usually `/var/lib/containers/storage` on Linux hosts (or `~/.local/share/containers/storage` for rootless users). You can see these layers being pulled in this example:
 
 ```
-[root@servera ~]# podman pull docker.io/mysql:5.7
-Trying to pull docker.io/mysql:5.7...
+$ podman pull docker.io/mysql:8.0
+Trying to pull docker.io/library/mysql:8.0...
 Getting image source signatures
 Copying blob 852e50cd189d [============>-------------------------] 8.8MiB / 25.8MiB
-Copying blob 5cdd802543a3 done  
+Copying blob 5cdd802543a3 done   |
 Copying blob 938c64119969 [=========>----------------------------] 3.3MiB / 12.8MiB
-Copying blob b79b040de953 done  
-Copying blob a43f41a44c48 done  
-Copying blob 29969ddb0ffb done  
+Copying blob b79b040de953 done   |
+Copying blob a43f41a44c48 done   |
+Copying blob 29969ddb0ffb done   |
 ```
 
-Each of these layers is stored in its own directory inside the host’s local storage area. To examine the layers on the filesystem, list the contents of `/var/lib/containers/storage/overlay-layers`. podman info shows the storage driver and the local storage area path.&#x20;
+Each of these layers is stored in its own directory inside the host's local storage area. To examine the layers on the filesystem, list the contents of `/var/lib/containers/storage/overlay-layers`. podman info shows the storage driver and the local storage area path.&#x20;
 
 ```
-[root@servera ~]# podman info
-...
-...
-...
+$ podman info
 ...
 store:
-  ConfigFile: /etc/containers/storage.conf
-  ContainerStore:
+  configFile: /etc/containers/storage.conf
+  containerStore:
     number: 2
-  GraphDriverName: overlay
-  GraphOptions: {}
-  GraphRoot: /var/lib/containers/storage
-  GraphStatus:
+  graphDriverName: overlay
+  graphOptions:
+    overlay.mountopt: nodev,metacopy=on
+  graphRoot: /var/lib/containers/storage
+  graphStatus:
     Backing Filesystem: xfs
-    Native Overlay Diff: "true"
+    Native Overlay Diff: "false"
     Supports d_type: "true"
-    Using metacopy: "false"
-  ImageStore:
+    Supports shifting: "true"
+    Supports volatile: "true"
+    Using metacopy: "true"
+  imageStore:
     number: 2
-  RunRoot: /var/run/containers/storage
-  VolumePath: /var/lib/containers/storage/volumes
+  runRoot: /run/containers/storage
+  volumePath: /var/lib/containers/storage/volumes
 
 ```

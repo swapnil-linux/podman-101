@@ -1,41 +1,72 @@
 # Moving from docker-compose to Podman pods
 
-Podman does not have a counterpart to the `docker-compose` command. Well, it does, sort of. There's a project in the works called [podman-compose](https://github.com/containers/podman-compose), which is supposed to do the same basic thing as `docker-compose`. It is still in its emerging stage.
+### Podman Compose
 
-### Podman play
-
-Podman does, however, let you import Kubernetes definitions using the `podman play` command. Kubernetes definitions are YAML. And sounds like a docker-compose alternative
+Podman now includes a built-in `podman compose` subcommand that works with standard Docker Compose files. It delegates to an external compose provider — either [docker-compose](https://github.com/docker/compose) or [podman-compose](https://github.com/containers/podman-compose) — while using Podman as the container engine.
 
 ```
-[root@servera ~]# podman play --help
-Play a pod
+# Using podman compose with a docker-compose.yml file
+podman compose up -d
+podman compose ps
+podman compose down
+```
+
+{% hint style="info" %}
+If you have `docker-compose` or `podman-compose` installed, `podman compose` will automatically detect and use it. Install one of them with:
+`pip install podman-compose` or `dnf install podman-compose`
+{% endhint %}
+
+### Podman Kube Play
+
+Podman lets you import Kubernetes YAML definitions using the `podman kube play` command. This provides a Kubernetes-native alternative to docker-compose:
+
+```
+$ podman kube play --help
+Play a pod or volume based on Kubernetes YAML
 
 Description:
-  Play a pod and its containers from a structured file.
+  Reads in a structured file of Kubernetes YAML.
+  Creates pods or volumes based on the Kubernetes kind described in the YAML.
 
 Usage:
-  podman play [command]
-
-Available Commands:
-  kube        Play a pod based on Kubernetes YAML
-
-
+  podman kube play [options] KUBEFILE [flags]
 ```
 
-### Podman generate
+### Podman Kube Generate
 
-Podman lets you generate Kubernetes definitions from the existing runtime. For example, if you have a running container, you can use `podman generate` to create a YAML file to define that container.&#x20;
+Podman lets you generate Kubernetes YAML definitions from the existing runtime. For example, if you have a running container or pod, you can use `podman kube generate` to create a YAML file to define it.&#x20;
 
 ```
-[root@servera ~]# podman generate --help
-Generate structured data based for a containers and pods
+$ podman kube generate --help
+Generate Kubernetes YAML from containers, pods or volumes
 
 Usage:
-  podman generate [command]
-
-Available Commands:
-  kube        Generate Kubernetes pod YAML from a container or pod
-  systemd     Generate a systemd unit file for a Podman container
-
-[root@servera ~]# 
+  podman kube generate [options] {CONTAINER...|POD...|VOLUME...} [flags]
 ```
+
+### Quadlet — Systemd Integration
+
+Podman also supports **Quadlet**, a way to run containers and pods as systemd services. Quadlet files are placed in `/etc/containers/systemd/` (for root) or `~/.config/containers/systemd/` (for rootless) and describe containers, pods, networks, and volumes using a systemd-like syntax.
+
+Example Quadlet container file (`~/.config/containers/systemd/myapp.container`):
+
+```ini
+[Container]
+Image=docker.io/library/nginx
+PublishPort=8080:80
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+After creating the file, reload systemd and start the service:
+
+```
+systemctl --user daemon-reload
+systemctl --user start myapp
+```
+
+Quadlet is the recommended approach for running containers as system services, replacing the older `podman generate systemd` command.

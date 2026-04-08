@@ -10,16 +10,14 @@ user15-testproject/api-swapnil-mask365-com:6443/user15
 2\. create a mysql pod with proper environment variables
 
 ```
-[student@servera ~]$ oc new-app --name=mysql --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7 -e MYSQL_USER=user1 -e MYSQL_PASSWORD=redhat -e MYSQL_DATABASE=friends
+[student@servera ~]$ oc new-app --name=mysql --image=docker.io/mysql:8.0 -e MYSQL_USER=user1 -e MYSQL_PASSWORD=redhat -e MYSQL_DATABASE=friends -e MYSQL_RANDOM_ROOT_PASSWORD=yes
 
 
---> Found container image 60726b3 (14 months old) from registry.access.redhat.com for "registry.access.redhat.com/rhscl/mysql-57-rhel7"
+--> Found container image 60726b3 (14 months old) from registry.access.redhat.com for "docker.io/mysql:8.0"
 
-    MySQL 5.7 
+    MySQL 8.0 
     --------- 
-    MySQL is a multi-user, multi-threaded SQL database server. The container image provides a containerized packaging of the MySQL mysqld daemon and client application. The mysqld server daemon accepts connections from clients and provides access to content from MySQL databases on behalf of the clients.
-
-    Tags: database, mysql, mysql57, rh-mysql57
+    MySQL is a multi-user, multi-threaded SQL database server.
 
     * An image stream tag will be created as "mysql:latest" that will track this image
 

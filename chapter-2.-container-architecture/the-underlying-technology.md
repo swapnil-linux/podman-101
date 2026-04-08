@@ -1,6 +1,6 @@
 # The Underlying Technology
 
-There’s an old saying that “nobody runs an operating system just to run an operating system” and the same is true with containers. It’s the workload running on top of an operating system or in a container that’s interesting and valuable.
+There's an old saying that "nobody runs an operating system just to run an operating system" and the same is true with containers. It's the workload running on top of an operating system or in a container that's interesting and valuable.
 
 ## Linux Kernel Namespace
 
@@ -38,21 +38,35 @@ A user namespace contains a mapping table converting user IDs from the container
 
 OCI Containers on Linux also relies on another technology called control groups (cgroups). A cgroup limits an application to a specific set of resources. Control groups allow to share available hardware resources to containers and optionally enforce limits and constraints. For example, you can limit the memory available to a specific container.
 
+Modern Linux distributions use **cgroupsv2** by default, which provides a unified hierarchy for all resource controllers. Podman 4.0+ defaults to cgroupsv2 and leverages it for improved resource management, including better support for rootless containers. cgroupsv2 offers a cleaner interface and features like eBPF-based device control and pressure stall information (PSI) metrics.
+
 ## Union FileSystem
 
-Union file systems, or UnionFS, are file systems that operate by creating layers, making them very lightweight and fast. Docker Engine uses UnionFS to provide the building blocks for containers. Docker Engine can use multiple UnionFS variants, including AUFS, btrfs, vfs, and DeviceMapper.
+Union file systems, or UnionFS, are file systems that operate by creating layers, making them very lightweight and fast. Podman uses **overlay** as the default storage driver on Linux, which provides efficient copy-on-write support for container layers. The overlay driver is configured in `/etc/containers/storage.conf` (or `~/.config/containers/storage.conf` for rootless users).
 
 ## SELinux
 
-On SELinux enabled systems like Red Hat Enterprise Linux and CentOS SELinux controls access to processes by Type and Level.&#x20;
+On SELinux enabled systems like Red Hat Enterprise Linux SELinux controls access to processes by Type and Level.&#x20;
 
 **SELinux labels consist of 4 parts:**
 
 `User:Role:Type:level`
 
-Type enforcement is a kind of enforcement in which rules are based on process type. It works in the following way. The default type for a confined container process is svirt\_lxc\_net\_t. This type is permitted to read and execute all files types under /usr and most types under/etc. svirt\_lxc\_net\_t is permitted to use the network but is not permitted to read content under/var, /home, /root, /mnt … svirt\_lxc\_net\_t is permitted to write only to files labeled `container_file_t` . All files in a container are labeled by default as `container_file_t`.&#x20;
+Type enforcement is a kind of enforcement in which rules are based on process type. It works in the following way. The default type for a confined container process is `container_t`. This type is permitted to read and execute all files types under /usr and most types under /etc. `container_t` is permitted to use the network but is not permitted to read content under /var, /home, /root, /mnt. `container_t` is permitted to write only to files labeled `container_file_t`. All files in a container are labeled by default as `container_file_t`.&#x20;
 
-Multi-Category Security (MCS) Separation is sometimes called svirt. It works in the following way. A unique value is assigned to the level field of the SELinux label of each container. By default each container is assigned the MCS Level equivalent to the PID of the docker process that starts the container.
+Multi-Category Security (MCS) Separation is sometimes called svirt. It works in the following way. A unique value is assigned to the level field of the SELinux label of each container. By default each container is assigned a unique MCS Level.
 
 The standard targeted policy includes rules that dictate that the MCS Labels of the process must dominate the MCS label of the target. The target is usually a file. The MCS Label usually looks something like `s0:c1,c2` Such a label would Dominate files labeled `s0, s0:c1, s0:c2, s0:c1,c2`. It would not, however, dominate `s0:c1,c3`. All MCS Labels are required to use two Categories. This guarantees that no two containers can have the same MCS Label by default.
 
+## Podman Configuration Files
+
+Podman's behavior is controlled by several configuration files:
+
+| **File** | **Purpose** |
+| --- | --- |
+| `/etc/containers/containers.conf` | Main Podman configuration (engine, network, runtime settings) |
+| `/etc/containers/registries.conf` | Container registry configuration |
+| `/etc/containers/storage.conf` | Storage driver and path configuration |
+| `/etc/containers/policy.json` | Image trust and signature policy |
+
+For rootless users, per-user overrides can be placed in `~/.config/containers/`.

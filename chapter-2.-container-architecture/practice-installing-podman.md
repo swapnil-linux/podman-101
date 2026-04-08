@@ -1,56 +1,53 @@
 # Practice: Installing and testing Podman
 
-## CentOS
+## Fedora
 
-Podman is available in the default Extras repos for CentOS 7 and in the AppStream repo for CentOS 8 and Stream. Even though the available version often lags behind the latest upstream release, it’s still the preferable build for production environments.
-
-```
-yum -y install podman
-```
-
-The [Kubic project](https://build.opensuse.org/project/show/devel:kubic:libcontainers:stable) provides updated packages for CentOS 7, 8 and Stream. These packages haven’t been through the official Red Hat QA process and may not be preferable for production environments.
+Podman is included by default on Fedora. If not already installed:
 
 ```
-# CentOS 7
-sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/devel:kubic:libcontainers:stable.repo
-sudo yum -y install podman
-
-# CentOS 8
-sudo dnf -y module disable container-tools
-sudo dnf -y install 'dnf-command(copr)'
-sudo dnf -y copr enable rhcontainerbot/container-selinux
-sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
 sudo dnf -y install podman
-sudo dnf -y update
 ```
 
-## RHEL 7
+## RHEL 9 / CentOS Stream 9
 
-Subscribe, then enable Extras channel and install Podman.
-
-```
-sudo subscription-manager repos --enable=rhel-7-server-extras-rpms
-sudo yum -y install podman
-```
-
-## RHEL 8
-
-Enable PowerTools repo and install Podman
+Install the container-tools module:
 
 ```
-dnf config-manager --set-enabled PowerTools
-
-dnf install -y @container-tools
+sudo dnf install -y container-tools
 ```
 
-## Ubuntu
+## Ubuntu / Debian
 
-The libpod package is available in the official repositories for Ubuntu 20.10 and newer.
+Podman is available in the official repositories for Ubuntu 22.04 and newer, and Debian 11+.
 
 ```
-# Ubuntu 20.10 and newer
 sudo apt-get -y update
 sudo apt-get -y install podman
+```
+
+## macOS
+
+On macOS, install Podman via [Homebrew](https://brew.sh/) or download [Podman Desktop](https://podman-desktop.io/):
+
+```bash
+# Install via Homebrew
+brew install podman
+
+# Initialize and start the Podman machine (Linux VM)
+podman machine init
+podman machine start
+```
+
+Alternatively, download and install [Podman Desktop](https://podman-desktop.io/) which provides a graphical interface and manages the Podman machine for you.
+
+## Windows
+
+On Windows, install Podman using the official MSI installer from the [Podman releases page](https://github.com/containers/podman/releases) or use [Podman Desktop](https://podman-desktop.io/).
+
+```powershell
+# After installing, initialize and start the Podman machine (uses WSL2 or Hyper-V)
+podman machine init
+podman machine start
 ```
 
 ## Testing Podman
@@ -58,52 +55,53 @@ sudo apt-get -y install podman
 1. Check podman version
 
 ```
-[root@servera ~]# podman version
-Version:            1.6.4
-RemoteAPI Version:  1
-Go Version:         go1.12.12
-OS/Arch:            linux/amd64
+$ podman version
+Client:       Podman Engine
+Version:      5.4.2
+API Version:  5.4.2
+Go Version:   go1.23.6
+Built:        Fri Feb 21 21:07:04 2025
+OS/Arch:      linux/amd64
 ```
 
-2\. pull alpine image using podman pull command
+2\. Pull alpine image using podman pull command
 
 ```
-[root@servera ~]# podman pull docker.io/alpine
-Trying to pull docker.io/alpine...
+$ podman pull docker.io/alpine
+Trying to pull docker.io/library/alpine:latest...
 Getting image source signatures
-Copying blob 188c0c94c7c5 done  
-Copying config d6e46aa247 done  
+Copying blob c6a83fedfae6 done   |
+Copying config 1d34ffeaf1 done   |
 Writing manifest to image destination
-Storing signatures
-d6e46aa2470df1d32034c6707c8041158b652f38d2a9ae3d7ad7e7532d22ebe0
+1d34ffeaf190be23d3de5a8de0a85e3b15a3da1b9b7b21ab5fe8717ce0e3b12e
 ```
 
 3\. Create a test container using podman run command
 
 ```
-podman run --name test-container-1 docker.io/alpine echo Hello World
+$ podman run --name test-container-1 docker.io/alpine echo Hello World
+Hello World
 ```
 
-4\. list the container using podman ps command
+4\. List the container using podman ps command
 
 ```
-[root@servera ~]# podman ps -a
-CONTAINER ID  IMAGE                            COMMAND                CREATED         STATUS                    PORTS  NAMES
-c23ccdbcd596  docker.io/library/alpine:latest  echo Hello World       17 seconds ago  Exited (0) 4 seconds ago         test-container-1
+$ podman ps -a
+CONTAINER ID  IMAGE                            COMMAND          CREATED         STATUS                    PORTS  NAMES
+a1b2c3d4e5f6  docker.io/library/alpine:latest  echo Hello Worl  10 seconds ago  Exited (0) 9 seconds ago         test-container-1
 ```
 
-5\. remove the container and image
+5\. Remove the container and image
 
 ```
-[root@servera ~]# podman rm test-container-1
-c23ccdbcd596ae484a865d922f30f4de8523ef6bbe76995f4312e181435d2459
+$ podman rm test-container-1
+a1b2c3d4e5f6
 ```
 
 ```
-[root@servera ~]# podman rmi docker.io/alpine
+$ podman rmi docker.io/alpine
 Untagged: docker.io/library/alpine:latest
-Deleted: d6e46aa2470df1d32034c6707c8041158b652f38d2a9ae3d7ad7e7532d22ebe0
+Deleted: 1d34ffeaf190be23d3de5a8de0a85e3b15a3da1b9b7b21ab5fe8717ce0e3b12e
 ```
 
 _**Congratulations! you have successfully installed and tested podman.**_
-
